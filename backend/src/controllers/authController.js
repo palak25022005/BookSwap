@@ -6,6 +6,10 @@ import {
   getSession,
   deleteSession,
 } from "../services/sessionStore.js";
+import {
+  findUserByFirebaseUID,
+  createUser,
+} from "../models/userModel.js";
 
 export const SESSION_COOKIE = "session_id";
 
@@ -21,26 +25,67 @@ const cookieOptions = {
 async function establishSession(req, res) {
   const { idToken } = req.body;
 
-  const user = await verifyIdToken(idToken);
-  const sessionId = createSession(user);
+  // Verify Firebase token
+  const firebaseUser = await verifyIdToken(idToken);
 
+  // Check if user exists in PostgreSQL
+  let dbUser = await findUserByFirebaseUID(firebaseUser.uid);
+
+  // Create user if first login
+  if (!dbUser) {
+    dbUser = await createUser(firebaseUser);
+  }
+
+  // Create session
+  const sessionId = createSession(dbUser);
+
+  // Send session cookie
   res.cookie(SESSION_COOKIE, sessionId, cookieOptions);
 
+  // Return user
   res.status(200).json({
     user: {
-      uid: user.uid,
-      email: user.email,
-      name: user.name,
+      id: dbUser.id,
+      uid: dbUser.firebase_uid,
+      email: dbUser.email,
+      name: dbUser.name,
     },
   });
 }
 
-export async function signup(req, res, next) {
-  try {
-    await establishSession(req, res);
-  } catch (err) {
-    next(err);
-  }
+export async function signup(req,res,next){
+
+    try{
+
+        const {idToken}=req.body;
+
+        const firebaseUser=await verifyIdToken(idToken);
+
+        let user=await findUserByFirebaseUID(firebaseUser.uid);
+
+        if(!user){
+
+            user=await createUser(firebaseUser);
+
+        }
+
+        const sessionId=createSession(user);
+
+        res.cookie(
+            SESSION_COOKIE,
+            sessionId,
+            cookieOptions
+        );
+
+        res.json(user);
+
+    }
+    catch(err){
+
+        next(err);
+
+    }
+
 }
 
 export async function login(req, res, next) {
@@ -63,11 +108,12 @@ export function me(req, res) {
   }
 
   res.status(200).json({
-    user: {
-      uid: session.uid,
-      email: session.email,
-      name: session.name,
-    },
+   user: {
+    id: session.id,
+    uid: session.uid,
+    email: session.email,
+    name: session.name,
+},
   });
 }
 

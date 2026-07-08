@@ -3,12 +3,6 @@
 import { getSession } from "../services/sessionStore.js";
 import { SESSION_COOKIE } from "../controllers/authController.js";
 
-/**
- * Protect routes that require authentication.
- *
- * Example:
- * router.get("/api/books/mine", requireAuth, booksController.mine);
- */
 export default function requireAuth(req, res, next) {
   const sessionId = req.cookies[SESSION_COOKIE];
   const session = getSession(sessionId);
@@ -20,7 +14,8 @@ export default function requireAuth(req, res, next) {
   }
 
   req.user = {
-    uid: session.uid,
+    id: session.id,          // PostgreSQL users.id
+    uid: session.uid,        // Firebase UID
     email: session.email,
     name: session.name,
   };

@@ -26,12 +26,20 @@ export const firebaseApp = initializeApp(firebaseConfig);
 export const auth = getAuth(firebaseApp);
 
 /** Creates a Firebase account and returns the fresh ID token. */
-export async function firebaseSignUp(email, password, displayName) {
-  const cred = await createUserWithEmailAndPassword(auth, email, password);
-  if (displayName) {
-    await updateProfile(cred.user, { displayName });
-  }
-  return cred.user.getIdToken();
+export async function firebaseSignUp(email, password, name) {
+  const credential = await createUserWithEmailAndPassword(
+    auth,
+    email,
+    password
+  );
+
+  await updateProfile(credential.user, {
+    displayName: name,
+  });
+
+  const idToken = await credential.user.getIdToken(true);
+
+  return idToken;
 }
 
 /** Signs in with Firebase and returns the ID token. */
