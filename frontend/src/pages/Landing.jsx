@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-
+import { Link } from "react-router-dom";
 /**
  * BookSwap — Landing Page (Pink/Purple Edition)
  * Aesthetic: vibrant gradient mesh, glassmorphism cards, floating blobs,
@@ -172,12 +172,12 @@ function NavBar() {
             <a href="#communities" className="hover:text-white transition-colors focus-ring rounded-sm">Communities</a>
             <a href="#savings" className="hover:text-white transition-colors focus-ring rounded-sm">Savings</a>
           </nav>
-          <a
-            href="#join"
-            className="btn-glow font-body text-sm font-semibold px-5 py-2.5 rounded-full text-white focus-ring"
-          >
-            Join the shelf →
-          </a>
+          <Link
+  to="/login"
+  className="btn-glow font-body text-sm font-semibold px-5 py-2.5 rounded-full text-white focus-ring"
+>
+  Join the shelf →
+</Link>
         </div>
       </div>
     </header>
