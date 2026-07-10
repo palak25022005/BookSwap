@@ -15,6 +15,66 @@ import {
 export default function Dashboard() {
   const navigate = useNavigate();
 
+  const [wishlist, setWishlist] = useState([]);
+
+const [wishlistBook, setWishlistBook] = useState({
+    title:"",
+    author:"",
+    genre:""
+});
+
+const [showWishlistModal,setShowWishlistModal]=useState(false);
+
+const handleWishlistSubmit = async () => {
+  const user = auth.currentUser;
+
+  if (!user) {
+    alert("Please login first");
+    return;
+  }
+
+  try {
+    const res = await axios.post(
+      "http://localhost:5000/api/wishlist",
+      {
+        user_id: user.uid,
+        ...wishlistBook,
+      }
+    );
+
+    setWishlist((prev) => [res.data, ...prev]);
+
+    setShowWishlistModal(false);
+
+    setWishlistBook({
+      title: "",
+      author: "",
+      genre: "",
+    });
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+useEffect(()=>{
+
+    const fetchWishlist=async()=>{
+
+        const user=auth.currentUser;
+
+        if(!user) return;
+
+        const res=await axios.get(
+            `http://localhost:5000/api/wishlist/${user.uid}`
+        );
+
+        setWishlist(res.data);
+    }
+
+    fetchWishlist();
+
+},[]);
+
   const [showModal,setShowModal]=useState(false);
 
 const [book,setBook]=useState({
@@ -180,22 +240,60 @@ useEffect(() => {
 </div>
 
           <div className="bg-slate-900 rounded-2xl p-6">
-            <Heart className="mb-3 text-pink-400" />
+  <Heart className="mb-3 text-pink-400" />
 
-            <h2 className="text-xl font-semibold">
-              Wishlist
-            </h2>
+  <h2 className="text-xl font-semibold">
+    Wishlist
+  </h2>
 
-            <p className="text-gray-400 text-sm mt-2">
-              Add books you'd like to borrow.
-            </p>
+  <p className="text-gray-400 text-sm mt-2">
+    Add books you'd like to borrow.
+  </p>
 
-            <button
-              className="mt-5 w-full bg-pink-600 py-3 rounded-xl"
-            >
-              Add Wishlist Book
-            </button>
-          </div>
+  <button
+    className="mt-5 w-full bg-pink-600 py-3 rounded-xl"
+    onClick={() => setShowWishlistModal(true)}
+  >
+    Add Wishlist Book
+  </button>
+
+  {/* Wishlist books */}
+  <div className="mt-6 max-h-[400px] overflow-y-auto space-y-4">
+
+    {wishlist.map(book => (
+
+      <div
+        key={book.id}
+        className="bg-slate-800 rounded-xl p-3 flex gap-3"
+      >
+
+        <img
+          src={book.image_url}
+          alt={book.title}
+          className="w-20 h-28 object-cover rounded"
+        />
+
+        <div>
+
+          <h3 className="font-semibold">
+            {book.title}
+          </h3>
+
+          <p>{book.author}</p>
+
+          <p className="text-sm text-pink-300">
+            {book.genre}
+          </p>
+
+        </div>
+
+      </div>
+
+    ))}
+
+  </div>
+
+</div>
 
           <div className="bg-slate-900 rounded-2xl p-6">
             <Search className="mb-3 text-green-400" />
@@ -363,6 +461,77 @@ Save
 </div>
 
 </div>
+)}
+
+{showWishlistModal && (
+  <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+
+    <div className="bg-slate-900 rounded-2xl p-6 w-[420px]">
+
+      <h2 className="text-2xl font-bold mb-5">
+        Add Wishlist Book
+      </h2>
+
+      <input
+        type="text"
+        placeholder="Book Title"
+        className="w-full mb-3 p-3 rounded bg-slate-800"
+        value={wishlistBook.title}
+        onChange={(e) =>
+          setWishlistBook({
+            ...wishlistBook,
+            title: e.target.value,
+          })
+        }
+      />
+
+      <input
+        type="text"
+        placeholder="Author"
+        className="w-full mb-3 p-3 rounded bg-slate-800"
+        value={wishlistBook.author}
+        onChange={(e) =>
+          setWishlistBook({
+            ...wishlistBook,
+            author: e.target.value,
+          })
+        }
+      />
+
+      <input
+        type="text"
+        placeholder="Genre"
+        className="w-full mb-5 p-3 rounded bg-slate-800"
+        value={wishlistBook.genre}
+        onChange={(e) =>
+          setWishlistBook({
+            ...wishlistBook,
+            genre: e.target.value,
+          })
+        }
+      />
+
+      <div className="flex justify-end gap-3">
+
+        <button
+          className="px-4 py-2 bg-gray-700 rounded"
+          onClick={() => setShowWishlistModal(false)}
+        >
+          Cancel
+        </button>
+
+        <button
+          className="px-4 py-2 bg-pink-600 rounded"
+          onClick={handleWishlistSubmit}
+        >
+          Save
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
 )}
 
 </>

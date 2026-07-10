@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 
 import authRoutes from "./routes/authRoutes.js";
 import bookRoutes from "./routes/books.js";
+import wishlistRoutes from "./routes/wishlist.js";
 import requireAuth from "./middleware/requireAuth.js";
 import { debugAllSessions } from "./services/sessionStore.js";
 
@@ -26,6 +27,7 @@ app.get("/", (req, res) => {
 // Authentication routes
 app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
+app.use("/api/wishlist", wishlistRoutes);
 
 // Protected route example
 app.get("/api/dashboard", requireAuth, (req, res) => {
