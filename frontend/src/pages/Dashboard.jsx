@@ -24,6 +24,116 @@ const [wishlistBook, setWishlistBook] = useState({
 });
 
 const [showWishlistModal,setShowWishlistModal]=useState(false);
+const [showCreateGroup, setShowCreateGroup] = useState(false);
+
+const [groupName, setGroupName] = useState("");
+
+const [showJoinModal, setShowJoinModal] = useState(false);
+
+const [inviteCode, setInviteCode] = useState("");
+
+const [joinLoading, setJoinLoading] = useState(false);
+
+const joinGroup = async () => {
+  const user = auth.currentUser;
+
+  if (!user) {
+    alert("Please login first");
+    return;
+  }
+
+  if (!inviteCode.trim()) {
+    alert("Enter an invite code");
+    return;
+  }
+
+  try {
+    setJoinLoading(true);
+
+    await axios.post(
+      "http://localhost:5000/api/groups/join",
+      {
+        firebase_uid: user.uid,
+        invite_code: inviteCode.trim(),
+      }
+    );
+
+    alert("Joined group successfully!");
+
+    setInviteCode("");
+
+    setShowJoinModal(false);
+
+    // Refresh the list of groups
+    loadGroups();
+
+  } catch (err) {
+
+    alert(
+      err.response?.data?.message || "Unable to join group"
+    );
+
+  } finally {
+
+    setJoinLoading(false);
+
+  }
+};
+
+const createGroup = async () => {
+
+const user = auth.currentUser;
+
+const res = await axios.post(
+"http://localhost:5000/api/groups/create",
+{
+firebase_uid:user.uid,
+name:groupName
+}
+);
+
+setGroups(prev=>[res.data,...prev]);
+
+setGroupName("");
+
+setShowCreateGroup(false);
+
+};
+
+const [groups,setGroups]=useState([]);
+
+useEffect(()=>{
+
+loadGroups();
+
+},[]);
+
+const loadGroups=async()=>{
+
+const user=auth.currentUser;
+
+const res=await axios.get(
+`http://localhost:5000/api/groups/${user.uid}`
+);
+
+setGroups(res.data);
+
+};
+
+const [copied,setCopied]=useState(false);
+const copyInvite=(code)=>{
+
+navigator.clipboard.writeText(code);
+
+setCopied(true);
+
+setTimeout(()=>{
+
+setCopied(false);
+
+},2000);
+
+}
 
 const handleWishlistSubmit = async () => {
   const user = auth.currentUser;
@@ -143,12 +253,7 @@ useEffect(() => {
   fetchBooks();
 }, []);
 
-  // Dummy data
-  const groups = [
-    { id: 1, name: "COEP Hostel", members: 42 },
-    { id: 2, name: "Civil Engineering", members: 61 },
-    { id: 3, name: "Office Friends", members: 18 },
-  ];
+ 
 
   
 
@@ -156,21 +261,39 @@ useEffect(() => {
     <>
     <div className="min-h-screen bg-slate-950 text-white">
       {/* Header */}
-      <div className="border-b border-white/10 px-8 py-6 flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">My Dashboard</h1>
-          <p className="text-gray-400 mt-1">
-            Manage your books, wishlist and exchange circles.
-          </p>
-        </div>
+     <div className="border-b border-white/10 px-8 py-6 flex justify-between items-center">
 
-        <button
-          className="bg-fuchsia-600 hover:bg-fuchsia-700 px-5 py-3 rounded-xl font-semibold"
-          onClick={() => navigate("/match")}
-        >
-          Find Matches
-        </button>
-      </div>
+  <div>
+
+    <h1 className="text-3xl font-bold">
+      My Dashboard
+    </h1>
+
+    <p className="text-gray-400 mt-1">
+      Manage your books, wishlist and exchange circles.
+    </p>
+
+  </div>
+
+  <div className="flex gap-3">
+
+    <button
+      onClick={() => setShowJoinModal(true)}
+      className="bg-violet-600 hover:bg-violet-700 px-5 py-3 rounded-xl font-semibold"
+    >
+      Join Group
+    </button>
+
+    <button
+      className="bg-fuchsia-600 hover:bg-fuchsia-700 px-5 py-3 rounded-xl font-semibold"
+      onClick={() => navigate("/match")}
+    >
+      Find Matches
+    </button>
+
+  </div>
+
+</div>
 
       <div className="grid lg:grid-cols-3 gap-8 p-8">
         {/* Left Column */}
@@ -322,10 +445,13 @@ useEffect(() => {
               My Groups
             </h2>
 
-            <button className="bg-violet-600 px-4 py-2 rounded-lg flex items-center gap-2">
-              <Plus size={18} />
-              Create
-            </button>
+             <button
+                onClick={() => setShowCreateGroup(true)}
+                className="bg-violet-600 px-4 py-2 rounded-lg flex items-center gap-2"
+            >
+    <Plus size={18}/>
+    Create
+</button>
           </div>
 
           <div className="space-y-4 mt-6">
@@ -343,14 +469,20 @@ useEffect(() => {
                 </p>
 
                 <div className="flex gap-3 mt-4">
-                  <button className="flex-1 bg-slate-800 rounded-lg py-2">
-                    View
-                  </button>
+                 <button
+onClick={()=>navigate(`/groups/${group.id}`)}
+className="flex-1 bg-slate-800 rounded-lg py-2"
+>
+View
+</button>
 
-                  <button className="flex items-center gap-2 bg-fuchsia-600 rounded-lg px-4">
-                    <Share2 size={18} />
-                    Invite
-                  </button>
+<button
+onClick={()=>copyInvite(group.invite_code)}
+className="flex items-center gap-2 bg-fuchsia-600 rounded-lg px-4"
+>
+<Share2 size={18}/>
+Invite
+</button>
                 </div>
               </div>
             ))}
@@ -533,6 +665,127 @@ Save
 
   </div>
 )}
+
+{
+showCreateGroup && (
+<div className="fixed inset-0 bg-black/60 flex justify-center items-center">
+
+<div className="bg-slate-900 rounded-xl p-6 w-[420px]">
+
+<h2 className="text-2xl font-bold mb-6">
+Create Group
+</h2>
+
+<input
+className="w-full p-3 rounded-lg bg-slate-800"
+placeholder="Group Name"
+value={groupName}
+onChange={(e)=>setGroupName(e.target.value)}
+/>
+
+<div className="flex justify-end gap-3 mt-6">
+
+<button
+onClick={()=>setShowCreateGroup(false)}
+className="px-5 py-2 bg-gray-700 rounded-lg"
+>
+Cancel
+</button>
+
+<button
+onClick={createGroup}
+className="px-5 py-2 bg-violet-600 rounded-lg"
+>
+Create
+</button>
+
+</div>
+
+</div>
+
+</div>
+)}
+
+{
+copied &&
+
+<div className="fixed bottom-5 right-5 bg-green-600 px-5 py-3 rounded-lg">
+
+Invite Code Copied!
+
+</div>
+
+}
+
+{
+showJoinModal && (
+
+<div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+
+  <div className="bg-slate-900 rounded-2xl w-[420px] p-6">
+
+    <h2 className="text-2xl font-bold mb-6">
+
+      Join Group
+
+    </h2>
+
+    <input
+
+      type="text"
+
+      placeholder="Enter Invite Code"
+
+      value={inviteCode}
+
+      onChange={(e)=>setInviteCode(e.target.value.toUpperCase())}
+
+      className="w-full bg-slate-800 rounded-xl px-4 py-3 outline-none"
+
+    />
+
+    <div className="flex justify-end gap-3 mt-6">
+
+      <button
+
+        onClick={()=>{
+
+          setShowJoinModal(false);
+
+          setInviteCode("");
+
+        }}
+
+        className="bg-gray-700 px-5 py-2 rounded-lg"
+
+      >
+
+        Cancel
+
+      </button>
+
+      <button
+
+        onClick={joinGroup}
+
+        disabled={joinLoading}
+
+        className="bg-violet-600 px-5 py-2 rounded-lg"
+
+      >
+
+        {joinLoading ? "Joining..." : "Join"}
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+)
+}
 
 </>
   );
