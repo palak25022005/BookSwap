@@ -2,14 +2,19 @@ import { useState, useEffect } from "react";
 import { auth } from "../lib/firebase";
 import axios from "axios";
 import { ArrowLeftRight } from "lucide-react";
+import { useAuthUser } from "../hooks/useAuthUser";
 
 export default function SwapPage() {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user, authLoading } = useAuthUser();
 
   useEffect(() => {
-    fetchMatches();
-  }, []);
+  if (authLoading || !user) return;
+
+  fetchMatches();
+
+}, [authLoading, user]);
 
   const fetchMatches = async () => {
     try {

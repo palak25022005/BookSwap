@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import {auth} from "../lib/firebase.js";
 import axios from "axios";
+import { useAuthUser } from "../hooks/useAuthUser.js";
 import {
   BookOpen,
   Heart,
@@ -14,6 +15,14 @@ import {
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { user, authLoading } = useAuthUser();
+
+  useEffect(() => {
+    if (authLoading || !user) return; // wait until Firebase resolves
+    loadGroups();
+    fetchWishlist();
+    fetchBooks();
+  }, [authLoading, user]);
 
   const [wishlist, setWishlist] = useState([]);
 
@@ -102,22 +111,21 @@ setShowCreateGroup(false);
 
 const [groups,setGroups]=useState([]);
 
-useEffect(()=>{
 
-loadGroups();
 
-},[]);
+const loadGroups = async () => {
+  if (!user) return;
 
-const loadGroups=async()=>{
+  try {
+    const res = await axios.get(
+      `http://localhost:5000/api/groups/${user.uid}`
+    );
 
-const user=auth.currentUser;
+    setGroups(res.data);
 
-const res=await axios.get(
-`http://localhost:5000/api/groups/${user.uid}`
-);
-
-setGroups(res.data);
-
+  } catch (err) {
+    console.error(err);
+  }
 };
 
 const [copied,setCopied]=useState(false);
@@ -166,24 +174,20 @@ const handleWishlistSubmit = async () => {
   }
 };
 
-useEffect(()=>{
+const fetchWishlist = async () => {
+  if (!user) return;
 
-    const fetchWishlist=async()=>{
+  try {
+    const res = await axios.get(
+      `http://localhost:5000/api/wishlist/${user.uid}`
+    );
 
-        const user=auth.currentUser;
+    setWishlist(res.data);
 
-        if(!user) return;
-
-        const res=await axios.get(
-            `http://localhost:5000/api/wishlist/${user.uid}`
-        );
-
-        setWishlist(res.data);
-    }
-
-    fetchWishlist();
-
-},[]);
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   const [showModal,setShowModal]=useState(false);
 
@@ -230,28 +234,20 @@ const handleSubmit = async () => {
 
 
 
-useEffect(() => {
-  const fetchBooks = async () => {
-    const user = auth.currentUser;
+const fetchBooks = async () => {
+  if (!user) return;
 
-    if (!user) {
-      console.log("No logged in user");
-      return;
-    }
+  try {
+    const res = await axios.get(
+      `http://localhost:5000/api/books/${user.uid}`
+    );
 
-    try {
-      const res = await axios.get(
-        `http://localhost:5000/api/books/${user.uid}`
-      );
+    setBooks(res.data);
 
-      setBooks(res.data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  fetchBooks();
-}, []);
+  } catch (err) {
+    console.error(err);
+  }
+};
 
  
 
