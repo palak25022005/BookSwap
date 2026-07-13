@@ -25,7 +25,8 @@
     "mongoose": "^9.7.3",
     "multer": "^2.2.0",
     "pg": "^8.22.0",
-    "react-router-dom": "^7.18.1"
+    "react-router-dom": "^7.18.1",
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

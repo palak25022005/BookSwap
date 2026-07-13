@@ -5,6 +5,7 @@ import Signup from "./pages/Signup.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import GroupDetails from "./pages/GroupDetails.jsx";
 import SwapPage from "./pages/SwapPage";
+import Notifications from "./pages/Notifications";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/groups/:id" element={<GroupDetails/>} />
         <Route path="/swap" element={<SwapPage />} />
+        <Route path="/notifications" element={<Notifications />} />
       </Routes>
     </BrowserRouter>
   );

@@ -272,6 +272,13 @@ const fetchBooks = async () => {
   </div>
 
   <div className="flex gap-3">
+      <button
+    onClick={() => navigate("/notifications")}
+    className="bg-amber-500 hover:bg-amber-600 px-5 py-3 rounded-xl font-semibold"
+  >
+    Upcoming Requests
+  </button>
+
 
     <button
       onClick={() => setShowJoinModal(true)}
