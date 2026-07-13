@@ -286,7 +286,7 @@ useEffect(() => {
 
     <button
       className="bg-fuchsia-600 hover:bg-fuchsia-700 px-5 py-3 rounded-xl font-semibold"
-      onClick={() => navigate("/match")}
+      onClick={() => navigate("/swap")}
     >
       Find Matches
     </button>

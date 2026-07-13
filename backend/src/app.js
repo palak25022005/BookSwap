@@ -6,6 +6,7 @@ import authRoutes from "./routes/authRoutes.js";
 import bookRoutes from "./routes/books.js";
 import wishlistRoutes from "./routes/wishlist.js";
 import groupRoutes from "./routes/groupRoutes.js";
+import swapRoutes from "./routes/swapRoutes.js";
 import requireAuth from "./middleware/requireAuth.js";
 import { debugAllSessions } from "./services/sessionStore.js";
 
@@ -30,6 +31,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/groups",groupRoutes);
+app.use("/api/swaps", swapRoutes);
 
 // Protected route example
 app.get("/api/dashboard", requireAuth, (req, res) => {
